@@ -18,14 +18,14 @@
   color-scheme: light;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--cream);color:var(--ink)}
+html,body{background:var(--cream);color:var(--ink);height:100%;overflow:hidden}
 body{font-family:"Inter Tight",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden;overflow-x:clip}
-body.locked{overflow:hidden;height:100vh}
+body.locked{overflow:hidden}
 a{color:inherit;text-decoration:none}
 
-/* ============ HERO (sticky, scroll-driven) ============ */
-.hero{position:relative;height:300vh}
-.hero__viewport{position:sticky;top:0;height:100vh;overflow:hidden;overflow:clip;background:var(--cream)}
+/* ============ HERO ============ */
+.hero{position:fixed;inset:0}
+.hero__viewport{position:absolute;inset:0;overflow:hidden;overflow:clip;background:var(--cream)}
 .stage{
   position:absolute;left:0;top:0;transform-origin:0 0;
   width:calc(var(--W) * 1px);height:calc(var(--H) * 1px);
@@ -131,8 +131,8 @@ a:focus-visible{outline:1px solid var(--sea-blue);outline-offset:6px}
 
 
 /* ============ PRELOADER (toggle: PRELOADER flag in the script) ============ */
-.pre{position:fixed;inset:0;z-index:80;color:var(--cream);transition:--pcThe 1.1s ease .25s,--pcLine 1.1s ease .25s}
-.pre.out{pointer-events:none}
+.pre{position:fixed;inset:0;z-index:80;color:var(--cream);background:var(--sea-blue);transition:--pcThe 1.1s ease .25s,--pcLine 1.1s ease .25s}
+.pre.out{pointer-events:none;background:transparent}
 /* background = vertical strips; on exit they lift away one after another */
 .pre__strips{position:absolute;inset:0;display:flex}
 .pre__strips i{flex:1;background:var(--sea-blue);margin-right:-1px;
@@ -194,7 +194,8 @@ a:focus-visible{outline:1px solid var(--sea-blue);outline-offset:6px}
 
 
 /* ============ PRELOADER — VARIANT 3 (sliding lines with echo trails, after mariavasilyeva.com) ============ */
-.pre3{position:fixed;inset:0;z-index:80}
+.pre3{position:fixed;inset:0;z-index:80;background:var(--sea-blue)}
+.pre3.out{background:transparent}   /* solid until the strips start lifting: no hairline seams between them */
 .pre3.out{pointer-events:none}
 .pre3.out .pre__strips i{transform:translateY(-100%)}
 .pre3__count{transition:opacity .4s ease}
@@ -223,10 +224,6 @@ a:focus-visible{outline:1px solid var(--sea-blue);outline-offset:6px}
 .cursor__ring i span{display:none}
 .cursor.is-link .cursor__ring i{inset:-25px}   /* ring grows 38 → 88px, stays an outline */
 .cursor.is-down .cursor__ring i{transform:scale(.85)}
-
-/* ============ NEXT SECTION (placeholder) ============ */
-.next{min-height:100vh;display:grid;place-items:center;background:var(--cream);padding:12vh 6vw}
-.next p{font-family:"Baskervville",serif;font-size:clamp(28px,3.4vw,64px);line-height:1.15;letter-spacing:-.02em;max-width:18ch;text-align:center}
 
 /* ============ INTRO ============ */
 .intro{position:fixed;inset:0;z-index:50;overflow:hidden;pointer-events:none;opacity:0}
@@ -285,10 +282,10 @@ a:focus-visible{outline:1px solid var(--sea-blue);outline-offset:6px}
 
       <nav class="nav rv-x fx" style="--d:1400" aria-label="Main">
         <a href="#hero" data-cursor="Go"><span class="cap">Home</span></a>
-        <a href="#next" data-cursor="Go"><span class="cap">Rooms</span></a>
-        <a href="#next" data-cursor="Go"><span class="cap">Gallery</span></a>
-        <a href="#next" data-cursor="Go"><span class="cap">Dining</span></a>
-        <a href="#next" data-cursor="Go"><span class="cap">Contact</span></a>
+        <a href="#" data-cursor="Go"><span class="cap">Rooms</span></a>
+        <a href="#" data-cursor="Go"><span class="cap">Gallery</span></a>
+        <a href="#" data-cursor="Go"><span class="cap">Dining</span></a>
+        <a href="#" data-cursor="Go"><span class="cap">Contact</span></a>
       </nav>
 
       <p class="t-small social cap rv fx" style="--d:1500">FOLLOW OUR STORY<br>
@@ -310,13 +307,9 @@ a:focus-visible{outline:1px solid var(--sea-blue);outline-offset:6px}
       <p class="kw cap rv fx" data-x="1473" data-a="c" style="--d:1280"><span>PEACE</span></p>
       <p class="kw cap rv fx" data-x="1703" data-a="r" style="--d:1350"><span>PURE TRANQUILITY</span></p>
 
-      <p class="cta rv-x fx" style="--d:1600"><a class="ul" href="#next" data-cursor="Book">Select Your Dates</a></p>
+      <p class="cta rv-x fx" style="--d:1600"><a class="ul" href="#" data-cursor="Book">Select Your Dates</a></p>
     </div>
   </div>
-</section>
-
-<section class="next" id="next">
-  <p>Next section — replace with your content</p>
 </section>
 
 <!-- ================= INTRO: door scene ================= -->
@@ -537,22 +530,13 @@ a:focus-visible{outline:1px solid var(--sea-blue);outline-offset:6px}
   viewport.addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; kick(); });
   viewport.addEventListener('pointerleave', () => { mx = my = -1e4; kick(); });
 
-  /* ---------- scroll: sea grows up & right ---------- */
-  const clamp = (v,a=0,b=1) => Math.min(b, Math.max(a, v));
-  const ease = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
+  /* ---------- static state (scroll animation removed) ---------- */
   function onScroll(){
-    const max = hero.offsetHeight - innerHeight;
-    const p = clamp(scrollY / max);
-    const e = ease(clamp(p / .85));
-    const target = 2;
-    stage.style.setProperty('--e', e);
-    stage.style.setProperty('--sc', 1 + (target - 1) * e);
-    const f = 1 - ease(clamp((p - .04) / .42));
-    stage.style.setProperty('--fade', f);
-    stage.style.setProperty('--lift', (1 - f) * 60);
+    stage.style.setProperty('--e', 0);
+    stage.style.setProperty('--sc', 1);
+    stage.style.setProperty('--fade', 1);
+    stage.style.setProperty('--lift', 0);
   }
-  let ticking = false;
-  addEventListener('scroll', () => { if (!ticking){ ticking = true; requestAnimationFrame(() => { onScroll(); ticking = false; }); } }, {passive:true});
   addEventListener('resize', layout);
 
   /* ---------- intro ---------- */
