@@ -24,7 +24,7 @@ body.locked{overflow:hidden}
 a{color:inherit;text-decoration:none}
 
 /* ============ HERO ============ */
-.hero{position:fixed;inset:0}
+.hero{position:fixed;left:0;top:0;width:100%;height:100vh}
 .hero__viewport{position:absolute;inset:0;overflow:hidden;overflow:clip;background:var(--cream)}
 .stage{
   position:absolute;left:0;top:0;transform-origin:0 0;
@@ -421,7 +421,11 @@ a:focus-visible{outline:1px solid var(--sea-blue);outline-offset:6px}
 
   /* ---------- layout: scale 1920×1080 design to any viewport ---------- */
   function layout(){
-    const vw = innerWidth, vh = innerHeight;
+    // real visible size: never taller than the window actually shows (in-app browsers, embeds, mobile bars)
+    const de = document.documentElement;
+    const vw = de.clientWidth || innerWidth;
+    const vh = Math.min(innerHeight, de.clientHeight || innerHeight, window.visualViewport ? visualViewport.height * visualViewport.scale : innerHeight, screen.availHeight || innerHeight);
+    hero.style.height = vh + 'px';
     const s = Math.min(vw / 1920, vh / 1080);
     W = vw / s; H = vh / s;
     stage.style.setProperty('--s', s);
@@ -447,7 +451,7 @@ a:focus-visible{outline:1px solid var(--sea-blue);outline-offset:6px}
       const a = k.dataset.a;
       let left = x;
       if (a === 'c') left = x + w / 2;
-      if (a === 'r') left = x + w;
+      if (a === 'r') left = W - 29;          // right edge lines up with FOLLOW OUR STORY
       if (a === 'q'){
         const q = document.getElementById('qMark').getBoundingClientRect();
         left = (q.left + q.width / 2 - sr.left) / s - 43;
@@ -538,6 +542,7 @@ a:focus-visible{outline:1px solid var(--sea-blue);outline-offset:6px}
     stage.style.setProperty('--lift', 0);
   }
   addEventListener('resize', layout);
+  if (window.visualViewport) visualViewport.addEventListener('resize', layout);
 
   /* ---------- intro ---------- */
   const intro = document.getElementById('intro');
